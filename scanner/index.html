@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>System Scanner Pro</title>
+    <style>
+        /* Стиль в духе темного минимализма */
+        body { 
+            background: #0d1117; 
+            color: #c9d1d9; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0;
+        }
+        .container {
+            background: #161b22;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 400px;
+            text-align: center;
+        }
+        h1 { color: #58a6ff; font-size: 20px; margin-bottom: 20px; }
+        
+        .result-item {
+            text-align: left;
+            background: #0d1117;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 6px;
+            border-left: 3px solid #58a6ff;
+            display: none; /* Скрыто до нажатия кнопки */
+        }
+
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button:hover { background: #2ea043; }
+        button:disabled { background: #484f58; cursor: not-allowed; }
+
+        #loader { display: none; margin: 20px 0; color: #8b949e; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>[ PC SCANNER ]</h1>
+    
+    <div id="loader">Идет сканирование системы...</div>
+
+    <div id="results">
+        <div class="result-item" id="cpu-box"><b>Процессор:</b> <span id="cpu"></span></div>
+        <div class="result-item" id="ram-box"><b>ОЗУ:</b> <span id="ram"></span> ГБ</div>
+        <div class="result-item" id="gpu-box"><b>Видеокарта:</b> <span id="gpu"></span></div>
+    </div>
+
+    <button id="scanBtn">Запустить сканирование</button>
+</div>
+
+<script>
+    const scanBtn = document.getElementById('scanBtn');
+    const loader = document.getElementById('loader');
+    const items = document.querySelectorAll('.result-item');
+
+    scanBtn.addEventListener('click', () => {
+        // 1. Показываем загрузку
+        scanBtn.disabled = true;
+        scanBtn.innerText = "Сканирование...";
+        loader.style.display = "block";
+        
+        // Скрываем старые результаты, если они были
+        items.forEach(item => item.style.display = 'none');
+
+        // 2. Имитируем процесс сканирования (задержка 1.5 секунды)
+        setTimeout(() => {
+            fetch('specs.json')
+                .then(response => {
+                    if (!response.ok) throw new Error();
+                    return response.json();
+                })
+                .then(data => {
+                    // Заполняем данные
+                    document.getElementById('cpu').innerText = data.cpu;
+                    document.getElementById('ram').innerText = data.ram_total;
+                    document.getElementById('gpu').innerText = data.gpu[0].name;
+
+                    // Показываем результаты
+                    loader.style.display = "none";
+                    items.forEach(item => item.style.display = 'block');
+                    scanBtn.disabled = false;
+                    scanBtn.innerText = "Обновить данные";
+                })
+                .catch(err => {
+                    alert("Ошибка: файл specs.json не найден. Сначала запустите scanner.py в VS Code!");
+                    loader.style.display = "none";
+                    scanBtn.disabled = false;
+                    scanBtn.innerText = "Попробовать снова";
+                });
+        }, 1500);
+    });
+</script>
+
+</body>
+</html>
